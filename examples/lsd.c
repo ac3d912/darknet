@@ -1043,7 +1043,7 @@ char *backup_directory = "/home/pjreddie/backup/";
 srand(time(0));
 char *base = basecfg(cfgfile);
 printf("%s\n", base);
-network net = parse_network_cfg(cfgfile);
+network *net = parse_network_cfg(cfgfile);
 if(weightfile){
 load_weights(&net, weightfile);
 }
@@ -1219,7 +1219,7 @@ save_weights(net, buff);
    char *base = basecfg(cfgfile);
    printf("%s\n", base);
    float avg_loss = -1;
-   network net = parse_network_cfg(cfgfile);
+   network *net = parse_network_cfg(cfgfile);
    if(weightfile){
    load_weights(&net, weightfile);
    }

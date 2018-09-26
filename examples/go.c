@@ -2,11 +2,20 @@
 
 #include <assert.h>
 #include <math.h>
+#ifdef WIN32
+//#include <Winsock2.h>
+#define STDIN_FILENO 0
+#else
 #include <unistd.h>
+#endif
 
 int inverted = 1;
 int noi = 1;
+#if __STDC_VERSION__ >= 199901L
 static const int nind = 10;
+#else
+#define nind 10
+#endif
 int legal_go(float *b, float *ko, int p, int r, int c);
 int check_ko(float *x, float *ko);
 

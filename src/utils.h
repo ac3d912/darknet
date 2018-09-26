@@ -14,9 +14,20 @@
 
 #define TWO_PI 6.2831853071795864769252866f
 
+#ifdef WIN32
+#define CLOCK_REALTIME	0
+#define BILLION                             (1E9)
+static BOOL g_first_time = 1;
+static LARGE_INTEGER g_counts_per_sec;
+
+int clock_gettime(int dummy, struct timespec *ct);
+int gettimeofday(struct timeval * tp, struct timezone * tzp);
+void timersub(struct timeval *a, struct timeval *b, struct timeval *result);
+#endif
+
 double what_time_is_it_now();
-void shuffle(void *arr, size_t n, size_t size);
-void sorta_shuffle(void *arr, size_t n, size_t size, size_t sections);
+void shuffle(char *arr, size_t n, size_t size);
+void sorta_shuffle(char *arr, size_t n, size_t size, size_t sections);
 void free_ptrs(void **ptrs, int n);
 int alphanum_to_int(char c);
 char int_to_alphanum(int i);

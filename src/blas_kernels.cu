@@ -9,6 +9,11 @@ extern "C" {
 #include "utils.h"
 }
 
+#ifdef WIN32
+	//OUT is a macro defined in windows, just undefine it (or rename the OUT's to something else)
+	#undef OUT
+#endif
+
 __global__ void scale_bias_kernel(float *output, float *biases, int n, int size)
 {
     int offset = blockIdx.x * blockDim.x + threadIdx.x;

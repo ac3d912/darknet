@@ -5,6 +5,20 @@
 #include <string.h>
 #include <pthread.h>
 
+
+#ifdef WIN32
+    // Winsock2 contains many of the types we need
+    //#include <WinSock2.h>
+	#include "Windows.h"
+    
+    #define snprintf _snprintf
+    #define popen _popen
+    #define pclose _pclose
+    #define sleep(a) Sleep(a*1000)
+    
+    #define inline __inline
+#endif
+
 #ifdef GPU
     #define BLOCK 512
 
@@ -15,6 +29,18 @@
     #ifdef CUDNN
     #include "cudnn.h"
     #endif
+#endif
+
+#ifndef __cplusplus
+#ifdef OPENCV
+#include "opencv2/highgui/highgui_c.h"
+#include "opencv2/imgproc/imgproc_c.h"
+#include "opencv2/core/version.hpp"
+#if CV_MAJOR_VERSION == 3
+#include "opencv2/videoio/videoio_c.h"
+#include "opencv2/imgcodecs/imgcodecs_c.h"
+#endif
+#endif
 #endif
 
 #ifdef __cplusplus

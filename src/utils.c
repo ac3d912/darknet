@@ -3,11 +3,15 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include <float.h>
 #include <limits.h>
 #include <time.h>
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 
 #include "utils.h"
 
@@ -23,6 +27,66 @@ double get_wall_time()
     return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
 */
+
+#ifdef WIN32
+#include <stdint.h>
+int clock_gettime(int dummy, struct timespec *ct)
+{
+	LARGE_INTEGER count;
+
+	if (g_first_time)
+	{
+		g_first_time = 0;
+
+		if (0 == QueryPerformanceFrequency(&g_counts_per_sec))
+		{
+			g_counts_per_sec.QuadPart = 0;
+		}
+	}
+
+	if ((NULL == ct) || (g_counts_per_sec.QuadPart <= 0) ||
+		(0 == QueryPerformanceCounter(&count)))
+	{
+		return -1;
+	}
+
+	ct->tv_sec = count.QuadPart / g_counts_per_sec.QuadPart;
+	ct->tv_nsec = ((count.QuadPart % g_counts_per_sec.QuadPart) * BILLION) / g_counts_per_sec.QuadPart;
+
+	return 0;
+}
+
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+
+void timersub(struct timeval *a, struct timeval *b, struct timeval *result) {
+	result->tv_sec = a->tv_sec - b->tv_sec;
+	result->tv_usec = a->tv_usec - b->tv_usec;
+	if (result->tv_usec < 0) {
+		--result->tv_sec;
+		result->tv_usec += 1000000;
+	}
+}
+#endif
+
 
 double what_time_is_it_now()
 {
@@ -71,7 +135,7 @@ int *read_map(char *filename)
     return map;
 }
 
-void sorta_shuffle(void *arr, size_t n, size_t size, size_t sections)
+void sorta_shuffle(char *arr, size_t n, size_t size, size_t sections)
 {
     size_t i;
     for(i = 0; i < sections; ++i){
@@ -82,7 +146,7 @@ void sorta_shuffle(void *arr, size_t n, size_t size, size_t sections)
     }
 }
 
-void shuffle(void *arr, size_t n, size_t size)
+void shuffle(char *arr, size_t n, size_t size)
 {
     size_t i;
     void *swp = calloc(1, size);
